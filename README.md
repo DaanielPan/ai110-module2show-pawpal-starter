@@ -41,6 +41,31 @@ PawPal+ goes beyond a basic task list with three additional scheduling features:
 - **Recurring tasks** — `CareTask` supports `frequency="daily"` or `frequency="weekly"`. Calling `Pet.complete_task()` marks the task done and automatically schedules the next occurrence using `timedelta`.
 - **Conflict detection** — `DailyPlanner.detect_conflicts()` scans for duplicate task types on the same day and tasks that exceed the owner's time budget, returning human-readable warnings instead of crashing.
 
+## Testing PawPal+
+
+### Running the tests
+
+```bash
+python3 -m pytest tests/test_pawpal.py -v
+```
+
+### What the tests cover
+
+| Area | Tests | What is verified |
+|---|---|---|
+| **Sorting** | `test_sort_by_time_*` | Tasks are returned in ascending duration order; completed and future-dated tasks are excluded |
+| **Recurrence** | `test_daily_task_*`, `test_weekly_task_*`, `test_once_task_*` | Completing a `daily` task spawns a new task for tomorrow; `weekly` tasks schedule 7 days out; `once` tasks do not recur |
+| **Conflict detection** | `test_conflict_detected_*`, `test_no_conflicts_*` | Duplicate task types on the same day trigger a warning; tasks that overflow the time budget trigger a budget warning; a clean schedule produces no warnings |
+| **Edge cases** | `test_pet_with_no_tasks_*`, `test_owner_with_no_pets_*` | A pet with zero tasks returns an empty list and a correct summary; an owner with no pets generates an empty plan without errors |
+
+### Confidence Level
+
+**★★★★☆ (4 / 5)**
+
+All 12 tests pass against the current implementation. The core scheduling behaviors — priority sorting, time-budget enforcement, recurring task generation, and conflict detection — are verified. One star is withheld because the Streamlit UI layer (`app.py`) is not covered by automated tests, and real-world inputs (e.g., negative durations, empty strings) are not yet validated at system boundaries.
+
+---
+
 ### Suggested workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.
