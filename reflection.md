@@ -59,10 +59,14 @@ When asked to simplify `generate_plan()`, AI suggested collapsing the accumulati
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 - What kinds of prompts or questions were most helpful?
 
+I used AI primarily for design brainstorming and code refactoring. During the initial design phase, I asked for suggestions on how to structure the classes and their relationships, which helped me identify key responsibilities and data flows. For example, I prompted: "How would you design a pet care scheduling system in Python? What classes and methods would you include?"
+
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
+
+One moment was when AI suggested using `itertools.accumulate` to simplify the scheduling loop in `generate_plan()`. While the code was more concise, it was less readable and harder to understand at a glance. I evaluated this suggestion by considering the tradeoff between conciseness and clarity. Since the scheduling logic is a critical part of the system and may need future modifications, I prioritized readability and maintainability over brevity, ultimately deciding to keep the explicit `for` loop.
 
 ---
 
@@ -73,10 +77,23 @@ When asked to simplify `generate_plan()`, AI suggested collapsing the accumulati
 - What behaviors did you test?
 - Why were these tests important?
 
+I tested several key behaviors of the scheduling system:
+- Sorting: I verified that tasks are returned in ascending duration order and that completed and future-dated tasks are excluded from today's plan.
+- Recurrence: I tested that completing a `daily` task spawns a new task for tomorrow, that `weekly` tasks schedule 7 days out, and that `once` tasks do not recur.
+- Conflict detection: I checked that duplicate task types on the same day trigger a warning, that tasks that overflow the time budget trigger a budget warning, and that a clean schedule produces no warnings.
+- Edge cases: I tested that a pet with zero tasks returns an empty list and a correct summary, and that an owner with no pets generates an empty plan without errors.
+
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
+
+I am fairly confident that the core scheduling behaviors are working correctly, as all 12 tests pass against the current implementation. The tests cover priority sorting, time-budget enforcement, recurring task generation, and conflict detection, which are the main functionalities of the system.
+If I had more time, I would test additional edge cases such as:
+- Handling of invalid inputs (e.g., negative durations, empty strings for task types).
+- Tasks that are scheduled for the past or far future to ensure they are correctly excluded from today's plan.
+- Interactions between multiple pets with overlapping tasks to verify that the planner aggregates and sorts them correctly across all pets.
+
 
 ---
 
@@ -85,11 +102,14 @@ When asked to simplify `generate_plan()`, AI suggested collapsing the accumulati
 **a. What went well**
 
 - What part of this project are you most satisfied with?
+I am most satisfied with the overall design and implementation of the scheduling logic in `DailyPlanner`. The system successfully prioritizes tasks based on their importance and fits them within the owner's time budget, while also providing clear explanations for the generated plan. The conflict detection mechanism is also a strong point, as it proactively identifies issues that could arise from duplicate tasks or time overflows, helping owners manage their pet care more effectively.
 
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
+If I had another iteration, I would improve the handling of owner preferences in the scheduling logic. Currently, preferences are stored but not factored into the task prioritization or sorting. I would redesign the `generate_plan()` method to consider these preferences, allowing owners to specify certain tasks as "must do" or "can skip" based on their personal priorities and constraints. Additionally, I would implement input validation at the system boundaries to prevent invalid data from causing issues downstream.
 
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+One important takeaway is that while AI can provide valuable suggestions for design and code improvements, it is crucial to apply human judgment when evaluating those suggestions. Not every AI-generated idea will be the best fit for the specific context of the project, and it's important to consider tradeoffs such as readability, maintainability, and the specific needs of the users when deciding whether to implement an AI suggestion. This project reinforced the importance of balancing AI assistance with critical thinking to create a system that is both functional and user-friendly.

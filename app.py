@@ -51,7 +51,7 @@ if not pets:
     st.info("Add a pet first before scheduling tasks.")
 else:
     pet_names = [p.name for p in pets]
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         target_pet = st.selectbox("Assign to pet", pet_names)
     with col2:
@@ -60,6 +60,8 @@ else:
         duration = st.number_input("Duration (min)", min_value=1, max_value=240, value=20)
     with col4:
         priority_str = st.selectbox("Priority", ["high", "medium", "low"])
+    with col5:
+        frequency = st.selectbox("Repeats", ["once", "daily", "weekly"])
 
     if st.button("Add task"):
         selected_pet = next(p for p in pets if p.name == target_pet)
@@ -69,12 +71,13 @@ else:
             duration_minutes=int(duration),
             priority=priority_map[priority_str],
             scheduled_date=date.today(),
+            frequency=frequency,
         )
         selected_pet.add_task(new_task)
         st.success(f"Added '{task_title}' to {target_pet}.")
 
     if any(p.tasks for p in pets):
-        st.write("**Current tasks:**")
+        st.write("**Current tasks (all):**")
         rows = []
         for p in pets:
             for t in p.tasks:
@@ -83,7 +86,8 @@ else:
                     "Task": t.task_type,
                     "Duration (min)": t.duration_minutes,
                     "Priority": t.priority.value,
-                    "Done": t.is_completed,
+                    "Repeats": t.frequency,
+                    "Done": "✅" if t.is_completed else "⬜",
                 })
         st.table(rows)
 
@@ -97,4 +101,59 @@ if st.button("Generate schedule"):
         st.warning("Add at least one pet and task first.")
     else:
         planner = DailyPlanner(owner)
-        st.text(planner.explain_plan())
+
+        # --- Conflict warnings (shown first so owner can act) ---
+        conflicts = planner.detect_conflicts()
+        if conflicts:
+            st.error("**Scheduling conflicts detected — review before starting your day:**")
+            for msg in conflicts:
+                # Strip the "WARNING: " prefix since the UI provides context
+                clean = msg.replace("WARNING: ", "")
+                st.warning(f"⚠️ {clean}")
+
+        # --- Priority-sorted plan ---
+        plan = planner.generate_plan()
+        if not plan:
+            st.info("No tasks fit today's schedule. Try adding tasks or increasing your available time.")
+        else:
+            priority_badge = {
+                "high": "🔴 HIGH",
+                "medium": "🟡 MEDIUM",
+                "low": "🟢 LOW",
+            }
+            time_used = sum(t.duration_minutes for t in plan)
+
+            st.success(
+                f"Plan ready — **{time_used} of {owner.available_time_minutes} min** scheduled "
+                f"across {len(plan)} task(s)."
+            )
+
+            plan_rows = [
+                {
+                    "Priority": priority_badge.get(t.priority.value, t.priority.value),
+                    "Task": t.task_type,
+                    "Duration (min)": t.duration_minutes,
+                    "Repeats": t.frequency,
+                }
+                for t in plan
+            ]
+            st.table(plan_rows)
+
+        st.divider()
+
+        # --- Sorted by duration (quick-wins view) ---
+        st.subheader("Tasks by Duration (shortest first)")
+        sorted_tasks = planner.sort_by_time()
+        if sorted_tasks:
+            sorted_rows = [
+                {
+                    "Task": t.task_type,
+                    "Duration (min)": t.duration_minutes,
+                    "Priority": t.priority.value,
+                    "Repeats": t.frequency,
+                }
+                for t in sorted_tasks
+            ]
+            st.table(sorted_rows)
+        else:
+            st.info("No pending tasks due today.")
