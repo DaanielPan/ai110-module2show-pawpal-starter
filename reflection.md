@@ -2,15 +2,31 @@
 
 ## 1. System Design
 
+Add/manage a pet — register a pet with its name, type, and care constraints (e.g., medication schedule, dietary needs)
+Log a care task — record completed or upcoming tasks (walks, feeding, meds, grooming, enrichment)
+View today's plan — see a prioritized daily schedule with explanations for why each task was chosen/ordered
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+My initial UML design included four classes: Pet, CareTask, Owner, and DailyPlanner.
+
+- Pet holds basic information about an animal (name, species, age, weight) and can produce a human-readable summary of itself.
+- CareTask represents a single care activity (e.g., walk, feeding, meds) with a type, duration, priority level, and completion status. It can mark itself complete and check whether it is due today.
+- Owner stores the user's name, daily time budget, and preferences. It manages a list of pets and is responsible for adding and retrieving them.
+- DailyPlanner is the central scheduling object. It takes an owner and their tasks and is responsible for generating a prioritized daily plan, explaining the reasoning behind it, and reporting which tasks have been completed.
+
+
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+Yes, the design changed after reviewing the initial skeleton. The most significant change was to CareTask: in the original design it had no link to a specific Pet and no date information, meaning the planner had no way to know which task belonged to which animal or whether a task was actually due. Two fields were added — pet: Pet to establish the ownership relationship, and scheduled_date: date so is_due_today() has real data to compare against.
+
+The second change was replacing priority: str with a Priority enum. The string approach allowed silent bugs (e.g., "High" vs "high") that would break any sorting logic in generate_plan(). Using an enum makes invalid priorities a hard error at the point of creation rather than a subtle runtime failure.
 
 ---
 
