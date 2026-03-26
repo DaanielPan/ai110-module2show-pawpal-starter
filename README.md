@@ -32,6 +32,15 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Smarter Scheduling
+
+PawPal+ goes beyond a basic task list with three additional scheduling features:
+
+- **Sort by time** — `DailyPlanner.sort_by_time()` returns today's pending tasks ordered by duration (shortest first), useful for quick wins early in the day.
+- **Filter tasks** — `DailyPlanner.filter_tasks(completed, pet_name)` lets you query tasks by completion status, by pet, or both combined.
+- **Recurring tasks** — `CareTask` supports `frequency="daily"` or `frequency="weekly"`. Calling `Pet.complete_task()` marks the task done and automatically schedules the next occurrence using `timedelta`.
+- **Conflict detection** — `DailyPlanner.detect_conflicts()` scans for duplicate task types on the same day and tasks that exceed the owner's time budget, returning human-readable warnings instead of crashing.
+
 ### Suggested workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.

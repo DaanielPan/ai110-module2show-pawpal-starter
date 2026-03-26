@@ -37,10 +37,18 @@ The second change was replacing priority: str with a Priority enum. The string a
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+The scheduler considers two main constraints: time budget (the owner's total available minutes for the day) and task priority (high, medium, or low). Tasks are sorted by priority first, then greedily added to the plan as long as they fit within the remaining time. Duplicate tasks and time overflows are flagged as warnings via conflict detection.
+
+Priority was treated as the most important constraint because a pet missing medication or feeding is a worse outcome than missing enrichment or grooming. Time budget came second since the owner's day is finite and the scheduler must make hard cuts. Owner preferences were acknowledged in the design but left as a future improvement — they are stored on the Owner object but not yet factored into sorting logic.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+The scheduler uses a greedy first-fit strategy: it sorts tasks by priority and adds each one if it fits within the remaining time budget, stopping as soon as a task doesn't fit rather than searching for a smaller task that might still squeeze in. A more optimal algorithm (like 0/1 knapsack) could pack the day more efficiently, but it would be significantly more complex to read and debug. For a daily pet care planner — where simplicity and predictability matter more than squeezing out every last minute — the greedy approach is a reasonable tradeoff.
+
+When asked to simplify `generate_plan()`, AI suggested collapsing the accumulation loop into a single `itertools.accumulate` expression. That version was more concise but harder to read at a glance. The explicit `for` loop was kept because it reads like plain English ("for each task, if it fits, add it") and is easier to modify if the scheduling rules change later.
 
 ---
 
